@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>照片分享</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 10px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .photo-card {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .photo-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .photo-container:hover .photo {
+            transform: scale(1.05);
+        }
+
+        .photo-info {
+            text-align: center;
+        }
+
+        .photo-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            word-break: break-all;
+            line-height: 1.2;
+        }
+
+        .download-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .download-btn:hover::before {
+            left: 100%;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: calc(100vh - 80px);
+            object-fit: contain;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .modal-hint {
+            position: absolute;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            z-index: 1001;
+            white-space: nowrap;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .loading {
+            text-align: center;
+            margin: 50px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* 动画加载器样式 */
+        .loader {
+            width: 112px;
+            height: 112px;
+            position: relative;
+        }
+
+        .box1,
+        .box2,
+        .box3 {
+            border: 16px solid rgba(255, 255, 255, 0.8);
+            box-sizing: border-box;
+            position: absolute;
+            display: block;
+        }
+
+        .box1 {
+            width: 112px;
+            height: 48px;
+            margin-top: 64px;
+            margin-left: 0px;
+            animation: abox1 4s 1s forwards ease-in-out infinite;
+        }
+
+        .box2 {
+            width: 48px;
+            height: 48px;
+            margin-top: 0px;
+            margin-left: 0px;
+            animation: abox2 4s 1s forwards ease-in-out infinite;
+        }
+
+        .box3 {
+            width: 48px;
+            height: 48px;
+            margin-top: 0px;
+            margin-left: 64px;
+            animation: abox3 4s 1s forwards ease-in-out infinite;
+        }
+
+        @keyframes abox1 {
+            0% {
+                width: 112px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 0px;
+            }
+
+            12.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 0px;
+            }
+
+            25% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 0px;
+            }
+
+            37.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 0px;
+            }
+
+            50% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 0px;
+            }
+
+            62.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 0px;
+            }
+
+            75% {
+                width: 48px;
+                height: 112px;
+                margin-top: 0px;
+                margin-left: 0px;
+            }
+
+            87.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 0px;
+            }
+
+            100% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 0px;
+            }
+        }
+
+        @keyframes abox2 {
+            0% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 0px;
+            }
+
+            12.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 0px;
+            }
+
+            25% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 0px;
+            }
+
+            37.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 0px;
+            }
+
+            50% {
+                width: 112px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 0px;
+            }
+
+            62.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 64px;
+            }
+
+            75% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 64px;
+            }
+
+            87.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 64px;
+            }
+
+            100% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 64px;
+            }
+        }
+
+        @keyframes abox3 {
+            0% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 64px;
+            }
+
+            12.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 0px;
+                margin-left: 64px;
+            }
+
+            25% {
+                width: 48px;
+                height: 112px;
+                margin-top: 0px;
+                margin-left: 64px;
+            }
+
+            37.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 64px;
+            }
+
+            50% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 64px;
+            }
+
+            62.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 64px;
+            }
+
+            75% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 64px;
+            }
+
+            87.5% {
+                width: 48px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 64px;
+            }
+
+            100% {
+                width: 112px;
+                height: 48px;
+                margin-top: 64px;
+                margin-left: 0px;
+            }
+        }
+
+        .error-msg {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 400px) {
+            .gallery {
+                gap: 10px;
+            }
+            
+            .photo-card {
+                padding: 10px;
+            }
+            
+            .photo-container {
+                height: 150px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .modal-image {
+                max-height: calc(100vh - 60px);
+            }
+            
+            .modal-hint {
+                bottom: 40px;
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 更大屏幕的优化 */
+        @media (min-width: 768px) {
+            .modal-content {
+                padding: 40px;
+            }
+            
+            .modal-image {
+                max-height: calc(100vh - 120px);
+            }
+            
+            .modal-hint {
+                bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 照片分享</h1>
+            <p>双击图片放大 | 长按保存</p>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="loader">
+                <div class="box1"></div>
+                <div class="box2"></div>
+                <div class="box3"></div>
+            </div>
+            <div class="loading-text">正在扫描照片文件...</div>
+        </div>
+        
+        <div id="gallery" class="gallery" style="display: none;">
+        </div>
+        
+        <div id="error" class="error-msg" style="display: none;">
+            暂时没有找到照片文件
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <img id="modal-image" class="modal-image" src="" alt="">
+            <div class="modal-hint">长按图片保存到相册</div>
+        </div>
+    </div>
+
+    <script>
+        class PhotoGallery {
+            constructor() {
+                this.photos = [];
+                this.modal = document.getElementById('modal');
+                this.modalImage = document.getElementById('modal-image');
+                this.gallery = document.getElementById('gallery');
+                this.loading = document.getElementById('loading');
+                this.error = document.getElementById('error');
+                
+                this.init();
+            }
+
+            async init() {
+                await this.loadPhotos();
+                this.setupEventListeners();
+            }
+
+            // 格式化文件名显示，长文件名截断为4个字符+...+扩展名
+            formatDisplayName(filename) {
+                const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
+                const ext = filename.split('.').pop();
+                
+                if (nameWithoutExt.length > 4) {
+                    return `${nameWithoutExt.substring(0, 4)}...${ext}`;
+                }
+                return filename;
+            }
+
+            async loadPhotos() {
+                const validPhotos = [];
+                
+                // 常见的jpg文件名模式和可能的文件名
+                const possibleFiles = [
+                    // 数字命名 1-100
+                    ...Array.from({length: 100}, (_, i) => `${i + 1}.jpg`),
+                    ...Array.from({length: 100}, (_, i) => `${i + 1}.JPG`),
+                    
+                    // 常见的命名模式
+                    'photo.jpg', 'Photo.jpg', 'PHOTO.JPG',
+                    'image.jpg', 'Image.jpg', 'IMAGE.JPG',
+                    'pic.jpg', 'Pic.jpg', 'PIC.JPG',
+                    'screenshot.jpg', 'Screenshot.jpg', 'SCREENSHOT.JPG',
+                    
+                    // 日期格式命名
+                    ...this.generateDateFormats(),
+                    
+                    // IMG_开头的文件
+                    ...Array.from({length: 50}, (_, i) => `IMG_${String(i + 1).padStart(4, '0')}.jpg`),
+                    ...Array.from({length: 50}, (_, i) => `IMG_${String(i + 1).padStart(4, '0')}.JPG`),
+                    
+                    // DSC_开头的文件（相机常用）
+                    ...Array.from({length: 50}, (_, i) => `DSC_${String(i + 1).padStart(4, '0')}.jpg`),
+                    ...Array.from({length: 50}, (_, i) => `DSC_${String(i + 1).padStart(4, '0')}.JPG`),
+                ];
+
+                // 检查所有可能的文件
+                const checkPromises = possibleFiles.map(async (filename) => {
+                    try {
+                        const exists = await this.checkImageExists(filename);
+                        if (exists) {
+                            return {
+                                filename: filename,
+                                displayName: this.formatDisplayName(filename),
+                                fullName: filename
+                            };
+                        }
+                        return null;
+                    } catch (error) {
+                        return null;
+                    }
+                });
+
+                const results = await Promise.all(checkPromises);
+                const foundPhotos = results.filter(photo => photo !== null);
+
+                // 按文件名排序
+                this.photos = foundPhotos.sort((a, b) => {
+                    // 尝试按数字排序，如果不是数字则按字母排序
+                    const aNum = parseInt(a.filename.match(/\d+/)?.[0]);
+                    const bNum = parseInt(b.filename.match(/\d+/)?.[0]);
+                    
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return aNum - bNum;
+                    }
+                    
+                    return a.filename.localeCompare(b.filename);
+                });
+
+                this.renderGallery();
+            }
+
+            // 生成常见的日期格式文件名
+            generateDateFormats() {
+                const formats = [];
+                const currentYear = new Date().getFullYear();
+                
+                // 生成近几年的一些日期格式
+                for (let year = currentYear - 2; year <= currentYear; year++) {
+                    for (let month = 1; month <= 12; month++) {
+                        for (let day = 1; day <= 31; day++) {
+                            const monthStr = String(month).padStart(2, '0');
+                            const dayStr = String(day).padStart(2, '0');
+                            
+                            // 只生成一部分日期，避免过多请求
+                            if (day % 5 === 1) {
+                                formats.push(`${year}${monthStr}${dayStr}.jpg`);
+                                formats.push(`${year}-${monthStr}-${dayStr}.jpg`);
+                                formats.push(`${monthStr}${dayStr}${year}.jpg`);
+                            }
+                        }
+                    }
+                }
+                
+                return formats.slice(0, 50); // 限制数量
+            }
+
+            checkImageExists(filename) {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    const timeout = setTimeout(() => {
+                        resolve(false);
+                    }, 3000); // 3秒超时
+                    
+                    img.onload = () => {
+                        clearTimeout(timeout);
+                        resolve(true);
+                    };
+                    img.onerror = () => {
+                        clearTimeout(timeout);
+                        resolve(false);
+                    };
+                    img.src = filename;
+                });
+            }
+
+            renderGallery() {
+                this.loading.style.display = 'none';
+                
+                if (this.photos.length === 0) {
+                    this.error.style.display = 'block';
+                    return;
+                }
+
+                this.gallery.style.display = 'grid';
+                
+                this.photos.forEach(photo => {
+                    const photoCard = this.createPhotoCard(photo);
+                    this.gallery.appendChild(photoCard);
+                });
+            }
+
+            createPhotoCard(photo) {
+                const card = document.createElement('div');
+                card.className = 'photo-card';
+                
+                card.innerHTML = `
+                    <div class="photo-container" data-src="${photo.filename}">
+                        <img class="photo" src="${photo.filename}" alt="${photo.displayName}" loading="lazy">
+                    </div>
+                    <div class="photo-info">
+                        <div class="photo-title" title="${photo.fullName}">${photo.displayName}</div>
+                        <button class="download-btn" data-filename="${photo.filename}">
+                            📥 下载照片
+                        </button>
+                    </div>
+                `;
+
+                // 添加双击事件监听器
+                const photoContainer = card.querySelector('.photo-container');
+                photoContainer.addEventListener('dblclick', () => {
+                    this.openModal(photo.filename);
+                });
+
+                // 添加下载按钮事件监听器
+                const downloadBtn = card.querySelector('.download-btn');
+                downloadBtn.addEventListener('click', () => {
+                    this.downloadImage(photo.filename);
+                });
+
+                return card;
+            }
+
+            setupEventListeners() {
+                // 点击模态框背景关闭
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.closeModal();
+                    }
+                });
+
+                // 点击照片本身也关闭模态框
+                this.modalImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.closeModal();
+                });
+
+                // ESC键关闭模态框
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            openModal(imageSrc) {
+                this.modalImage.src = imageSrc;
+                this.modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeModal() {
+                this.modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
+            downloadImage(filename) {
+                const link = document.createElement('a');
+                link.href = filename;
+                link.download = filename;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // 显示下载提示
+                this.showDownloadToast();
+            }
+
+            showDownloadToast() {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0,0,0,0.8);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 25px;
+                    z-index: 2000;
+                    font-size: 0.9rem;
+                    backdrop-filter: blur(10px);
+                `;
+                toast.textContent = '✅ 开始下载照片';
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 2000);
+            }
+        }
+
+        // 初始化照片画廊
+        document.addEventListener('DOMContentLoaded', () => {
+            new PhotoGallery();
+        });
+    </script>
+</body>
+</html>
