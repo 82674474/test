@@ -16,9 +16,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
-            overflow: hidden;
         }
 
+        /* 密码覆盖层样式 */
         .password-overlay {
             position: fixed;
             top: 0;
@@ -97,6 +97,7 @@
             font-size: 14px;
         }
 
+        /* 主容器样式 */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -125,6 +126,7 @@
             font-size: 16px;
         }
 
+        /* 加载动画样式 */
         .loading {
             display: flex;
             flex-direction: column;
@@ -388,6 +390,7 @@
             }
         }
 
+        /* 图片展示容器 */
         .image-container {
             display: flex;
             flex-direction: column;
@@ -412,6 +415,7 @@
             cursor: pointer;
         }
 
+        /* 错误消息样式 */
         .error-msg {
             text-align: center;
             color: white;
@@ -423,6 +427,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        /* 响应式设计 */
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -443,6 +448,7 @@
     </style>
 </head>
 <body>
+    <!-- 密码覆盖层 -->
     <div id="passwordOverlay" class="password-overlay">
         <div class="password-dialog">
             <h3>🔐 请输入访问密码</h3>
@@ -454,12 +460,14 @@
         </div>
     </div>
 
+    <!-- 主容器 -->
     <div id="mainContainer" class="container" style="display: none;">
         <div class="header">
             <h1>WeChat照片分享</h1>
             <p>长按保存或扫码</p>
         </div>
 
+        <!-- 加载动画和图片展示容器 -->
         <div id="loading" class="loading">
             <div class="loader">
                 <div class="box1"></div>
@@ -469,24 +477,28 @@
             <div class="loading-text">正在加载照片...</div>
         </div>
 
+        <!-- 错误消息 -->
         <div id="error" class="error-msg" style="display: none;">
             暂时没有找到照片文件
         </div>
     </div>
 
     <script>
+        // 密码验证（支持两种格式）
         function checkPassword() {
             const password = document.getElementById('passwordInput').value;
             const errorDiv = document.getElementById('passwordError');
             
+            // 获取当前时间
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             const hours = String(now.getHours()).padStart(2, '0');
             
-            const correctPassword1 = `${year}${month}${day}${hours}`;
-            const correctPassword2 = `${year}${parseInt(month)}${parseInt(day)}${parseInt(hours)}`;
+            // 生成两种格式的正确密码
+            const correctPassword1 = `${year}${month}${day}${hours}`; // 格式1: YYYYMMDDHH (10位)
+            const correctPassword2 = `${year}${parseInt(month)}${parseInt(day)}${parseInt(hours)}`; // 格式2: YYYYMDH (7-9位)
             
             if (password === correctPassword1 || password === correctPassword2) {
                 document.getElementById('passwordOverlay').style.display = 'none';
@@ -498,42 +510,54 @@
             }
         }
 
+        // 回车键提交密码
         document.getElementById('passwordInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 checkPassword();
             }
         });
 
+        // 加载照片
         function loadPhoto() {
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             
+            // 图片文件名
             const imageName = 'WeChat.png';
             
+            // 创建图片对象
             const img = new Image();
             img.src = imageName;
             img.alt = imageName;
             
+            // 图片加载成功
             img.onload = function() {
+                // 清除加载动画
                 loading.innerHTML = '';
-                loading.className = 'image-container';
+                loading.className = 'image-container'; // 替换为图片展示容器样式
                 
+                // 创建图片标题（可点击下载）
                 const title = document.createElement('a');
                 title.className = 'image-title';
                 title.textContent = imageName;
                 title.href = imageName;
                 title.download = imageName;
+                title.style.textDecoration = 'none';
+                title.style.color = 'white';
                 
+                // 添加图片和标题到容器
                 loading.appendChild(img);
                 loading.appendChild(title);
             };
             
+            // 图片加载失败
             img.onerror = function() {
                 loading.style.display = 'none';
                 error.style.display = 'block';
             };
         }
 
+        // 防止右键保存图片
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
