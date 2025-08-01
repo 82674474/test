@@ -126,7 +126,7 @@
             font-size: 16px;
         }
 
-        /* 加载动画样式 - 使用提供的样式 */
+        /* 加载动画样式 */
         .loading {
             display: flex;
             flex-direction: column;
@@ -139,7 +139,6 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* 从Uiverse.io by alexruix */ 
         .loader {
           width: 112px;
           height: 112px;
@@ -484,20 +483,23 @@
     </div>
 
     <script>
-        // 密码验证（使用当前年月日时）
+        // 密码验证（支持两种格式）
         function checkPassword() {
             const password = document.getElementById('passwordInput').value;
             const errorDiv = document.getElementById('passwordError');
             
-            // 获取当前时间并格式化为YYYYMMDDHH
+            // 获取当前时间
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             const hours = String(now.getHours()).padStart(2, '0');
-            const correctPassword = `${year}${month}${day}${hours}`;
             
-            if (password === correctPassword) {
+            // 生成两种格式的正确密码
+            const correctPassword1 = `${year}${month}${day}${hours}`; // 格式1: YYYYMMDDHH (10位)
+            const correctPassword2 = `${year}${parseInt(month)}${parseInt(day)}${parseInt(hours)}`; // 格式2: YYYYMDH (7-9位)
+            
+            if (password === correctPassword1 || password === correctPassword2) {
                 document.getElementById('passwordOverlay').style.display = 'none';
                 document.getElementById('mainContainer').style.display = 'block';
                 loadPhoto();
@@ -541,6 +543,23 @@
                 // 添加图片和标题到容器
                 loading.appendChild(img);
                 loading.appendChild(title);
+
+                // 添加长按保存功能
+                let pressTimer;
+                img.addEventListener('touchstart', function(e) {
+                    pressTimer = setTimeout(function() {
+                        saveImage(img.src, imageName);
+                    }, 800); // 800毫秒长按触发
+                    e.preventDefault();
+                });
+
+                img.addEventListener('touchend', function() {
+                    clearTimeout(pressTimer);
+                });
+
+                img.addEventListener('touchmove', function() {
+                    clearTimeout(pressTimer);
+                });
             };
             
             // 图片加载失败
@@ -550,7 +569,17 @@
             };
         }
 
-        // 防止右键保存图片（可选）
+        // 保存图片功能
+        function saveImage(src, filename) {
+            const link = document.createElement('a');
+            link.href = src;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 防止右键保存图片
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
