@@ -16,6 +16,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
+            overflow: hidden; /* 添加页面固定 */
         }
 
         /* 密码覆盖层样式 */
@@ -412,6 +413,8 @@
             margin-top: 20px;
             font-size: 20px;
             text-align: center;
+            cursor: pointer; /* 添加指针样式 */
+            text-decoration: underline; /* 添加下划线表示可点击 */
         }
 
         /* 错误消息样式 */
@@ -536,30 +539,15 @@
                 loading.className = 'image-container'; // 替换为图片展示容器样式
                 
                 // 创建图片标题
-                const title = document.createElement('div');
+                const title = document.createElement('a');
                 title.className = 'image-title';
                 title.textContent = imageName; // 使用图片文件名
+                title.href = imageName; // 设置下载链接
+                title.download = imageName; // 设置下载属性
                 
                 // 添加图片和标题到容器
                 loading.appendChild(img);
                 loading.appendChild(title);
-
-                // 添加长按保存功能
-                let pressTimer;
-                img.addEventListener('touchstart', function(e) {
-                    pressTimer = setTimeout(function() {
-                        saveImage(img.src, imageName);
-                    }, 800); // 800毫秒长按触发
-                    e.preventDefault();
-                });
-
-                img.addEventListener('touchend', function() {
-                    clearTimeout(pressTimer);
-                });
-
-                img.addEventListener('touchmove', function() {
-                    clearTimeout(pressTimer);
-                });
             };
             
             // 图片加载失败
@@ -567,16 +555,6 @@
                 loading.style.display = 'none';
                 error.style.display = 'block';
             };
-        }
-
-        // 保存图片功能
-        function saveImage(src, filename) {
-            const link = document.createElement('a');
-            link.href = src;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
 
         // 防止右键保存图片
