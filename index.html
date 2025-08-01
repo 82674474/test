@@ -484,13 +484,20 @@
     </div>
 
     <script>
-        // 密码验证
+        // 密码验证（使用当前年月日时）
         function checkPassword() {
             const password = document.getElementById('passwordInput').value;
             const errorDiv = document.getElementById('passwordError');
             
-            // 这里可以设置你的密码
-            if (password === '123456') {
+            // 获取当前时间并格式化为YYYYMMDDHH
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const correctPassword = `${year}${month}${day}${hours}`;
+            
+            if (password === correctPassword) {
                 document.getElementById('passwordOverlay').style.display = 'none';
                 document.getElementById('mainContainer').style.display = 'block';
                 loadPhoto();
@@ -512,10 +519,13 @@
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             
+            // 图片文件名
+            const imageName = 'WeChat.png';
+            
             // 创建图片对象
             const img = new Image();
-            img.src = 'WeChat.png'; // 使用同目录下的WeChat.png文件
-            img.alt = '微信分享图片';
+            img.src = imageName;
+            img.alt = imageName;
             
             // 图片加载成功
             img.onload = function() {
@@ -526,7 +536,7 @@
                 // 创建图片标题
                 const title = document.createElement('div');
                 title.className = 'image-title';
-                title.textContent = '微信分享图片';
+                title.textContent = imageName; // 使用图片文件名
                 
                 // 添加图片和标题到容器
                 loading.appendChild(img);
