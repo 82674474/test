@@ -16,7 +16,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
-            overflow: hidden; /* 添加页面固定 */
+            overflow: hidden; /* 固定页面 */
         }
 
         /* 密码覆盖层样式 */
@@ -413,8 +413,7 @@
             margin-top: 20px;
             font-size: 20px;
             text-align: center;
-            cursor: pointer; /* 添加指针样式 */
-            text-decoration: underline; /* 添加下划线表示可点击 */
+            cursor: pointer; /* 保留指针样式 */
         }
 
         /* 错误消息样式 */
@@ -538,12 +537,12 @@
                 loading.innerHTML = '';
                 loading.className = 'image-container'; // 替换为图片展示容器样式
                 
-                // 创建图片标题
+                // 创建图片标题（使用<a>标签实现下载但无下划线）
                 const title = document.createElement('a');
                 title.className = 'image-title';
-                title.textContent = imageName; // 使用图片文件名
-                title.href = imageName; // 设置下载链接
-                title.download = imageName; // 设置下载属性
+                title.textContent = imageName;
+                title.href = imageName;
+                title.download = imageName;
                 
                 // 添加图片和标题到容器
                 loading.appendChild(img);
